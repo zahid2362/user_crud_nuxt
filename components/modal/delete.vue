@@ -2,7 +2,7 @@
   <div
     id="popup-modal"
     tabindex="-1"
-    :class="{ flex: visible, hidden: !visible }"
+    :class="{ flex: props.visible, hidden: !props.visible }"
     class="overflow-y-auto overflow-x-hidden fixed inset-0 z-50 justify-center items-center w-full h-full"
   >
     <div class="relative p-4 w-full max-w-md max-h-full">
@@ -68,12 +68,19 @@
   </div>
 </template>
 
-<script setup>
-const props = defineProps({
-  visible: Boolean,
-});
+<script setup lang="ts">
+interface Props {
+  visible: Boolean;
+}
 
-const emit = defineEmits(["close", "confirm"]);
+interface Emits {
+  (event: "close"): () => void;
+  (event: "confirm"): () => void;
+}
+
+const props = defineProps<Props>();
+
+const emit = defineEmits<Emits>();
 </script>
 
 <style scoped></style>

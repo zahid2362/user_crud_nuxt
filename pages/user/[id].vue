@@ -101,6 +101,7 @@
 </template>
 
 <script setup>
+import { handleImageUpload, formSubmit, errorInputClass } from "@/user";
 const { $toast } = useNuxtApp();
 const config = useRuntimeConfig();
 const router = useRouter();
@@ -122,57 +123,26 @@ if (userError.value?.data?.success == false) {
 const errors = ref({});
 
 const handleFileUpload = (event) => {
-  const file = event.target.files[0];
-
-  if (file && file.type.startsWith("image/")) {
-    user.value.avatar = file;
-  } else {
-    $toast.error("Selected file is not an image!");
-    event.target.value = "";
+  try {
+    handleImageUpload(event, user);
+  } catch (error) {
+    $toast.error(error.message);
   }
 };
-
 const submit = async () => {
-  const formData = new FormData();
-
-  formData.append("_method", "PUT");
-  formData.append("name", user.value.name);
-  formData.append("email", user.value.email);
-  formData.append("password", user.value.password);
-  formData.append("is_active", user.value.is_active ? "1" : "0");
-
-  if (user.value.avatar && typeof user.value.avatar != "string") {
-    formData.append("avatar", user.value.avatar);
-  }
-
-  try {
-    const response = await $fetch(
-      `${config.public.base_url}/user/${useRoute().params.id}`,
-      {
-        method: "post",
-        body: formData,
-      }
-    );
-    errors.value = {};
-    $toast.success(response.message);
-    router.push({ path: "/" });
-  } catch (err) {
-    $toast.error("something went wrong!");
-    errors.value = err.data.errors;
-  }
+  formSubmit(
+    `${config.public.base_url}/user/${useRoute().params.id}`,
+    user.value,
+    $fetch,
+    $toast,
+    router,
+    errors,
+    true
+  );
 };
 
 const getErrorInputClass = (field) => {
-  return errors.value[field]
-    ? [
-        "bg-red-50",
-        "border-red-500",
-        "text-red-900",
-        "placeholder-red-700",
-        "focus:ring-red-500",
-        "focus:border-red-500",
-      ]
-    : [];
+  return errorInputClass(errors.value, field);
 };
 </script>
 

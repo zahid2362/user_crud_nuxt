@@ -9,7 +9,7 @@
       </tr>
     </thead>
     <tbody>
-      <tr v-for="user in users">
+      <tr v-for="user in props.users">
         <td class="border px-4 py-2">{{ user.id }}</td>
         <td class="border px-4 py-2">
           <div class="flex items-center">
@@ -62,11 +62,21 @@
   </table>
 </template>
 
-<script setup>
-const props = defineProps({
-  users: Array,
-});
-const generateEditLink = (id) => {
+<script setup lang="ts">
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  avatar: string | null;
+  is_active: boolean;
+}
+
+interface Props {
+  users: User[];
+}
+
+const props = defineProps<Props>();
+const generateEditLink = (id: Number): string => {
   return `/user/${id}`;
 };
 </script>

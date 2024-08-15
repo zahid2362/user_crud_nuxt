@@ -1,6 +1,7 @@
+import { LazyFormErrorMessage } from '../.nuxt/components';
 <template>
   <div v-if="users">
-    <Table :users="users.data" @toggleDeleteModal="toggleDeleteModal"></Table>
+    <Table :users="users" @toggleDeleteModal="toggleDeleteModal"></Table>
     <div
       class="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6"
     >
@@ -96,31 +97,69 @@
   </div>
 </template>
 
-<script setup>
-const config = useRuntimeConfig();
+<script setup lang="ts">
 const { $toast } = useNuxtApp();
+const config = useRuntimeConfig();
 
-const showDeleteWarning = ref(false);
-const selectedUserId = ref(null);
+const showDeleteWarning: Ref<boolean> = ref(false);
+const selectedUserId: Ref<Number | null> = ref(null);
+
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  avatar: string | null;
+  is_active: boolean;
+}
+
+interface Response {
+  message: string;
+  success: boolean;
+  data: User[];
+}
+
+interface DeleteUserResponse {
+  message: "string";
+  success: boolean;
+}
 
 //methods
 const { data: users, refresh: refetchUsers } = await useLazyFetch(
-  `${config.public.base_url}/user`
+  `${config.public.base_url}/user`,
+  {
+    transform: (users: Response) => {
+      if (Array.isArray(users.data)) {
+        return users.data as User[];
+      } else {
+        throw new Error("Unexpected response format");
+      }
+    },
+  }
 );
 
-const toggleDeleteModal = (id = null) => {
+const toggleDeleteModal = (id: number | null = null): void => {
   showDeleteWarning.value = !showDeleteWarning.value;
   selectedUserId.value = id;
 };
 
-const deleteUser = async () => {
-  const response = await $fetch(
-    `${config.public.base_url}/user/${selectedUserId.value}`,
-    { method: "delete" }
-  );
-  $toast.success(response.message);
-  await refetchUsers();
-  toggleDeleteModal();
+const deleteUser = async (): Promise<void> => {
+  try {
+    const response = await $fetch<DeleteUserResponse>(
+      `${config.public.base_url}/user/${selectedUserId.value}`,
+      { method: "delete" }
+    );
+    $toast.success(response.message);
+  } catch (error) {
+    if (typeof error === "object" && error !== null && "data" in error) {
+      let errResponse = error.data as DeleteUserResponse;
+      $toast.error(errResponse?.message);
+    } else {
+      $toast.error("An unexpected error occurred");
+    }
+  } finally {
+    await refetchUsers();
+    toggleDeleteModal();
+  }
 };
 </script>
 
