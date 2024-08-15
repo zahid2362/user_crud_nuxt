@@ -73,7 +73,7 @@ import { RuntimeConfig } from '@nuxt/schema';
 </template>
 
 <script setup>
-import { handleImageUpload, formSubmit } from "@/user";
+import { handleImageUpload, formSubmit, errorInputClass } from "@/user";
 const { $toast } = useNuxtApp();
 const config = useRuntimeConfig();
 const router = useRouter();
@@ -106,16 +106,7 @@ const submit = async () => {
 };
 
 const getErrorInputClass = (field) => {
-  return errors.value[field]
-    ? [
-        "bg-red-50",
-        "border-red-500",
-        "text-red-900",
-        "placeholder-red-700",
-        "focus:ring-red-500",
-        "focus:border-red-500",
-      ]
-    : [];
+  return errorInputClass(errors.value, field);
 };
 </script>
 
