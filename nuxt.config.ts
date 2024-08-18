@@ -4,7 +4,8 @@ export default defineNuxtConfig({
   compatibilityDate: '2024-04-03',
   devtools: { enabled: true },
   alias:{
-    '@' : resolve(__dirname,'/util')
+    '@' : resolve(__dirname,'/util'),
+    '@type' : resolve(__dirname,'/types'),
   },
   runtimeConfig:{
     public:{

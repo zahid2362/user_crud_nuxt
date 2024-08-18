@@ -1,93 +1,7 @@
-import { LazyFormErrorMessage } from '../.nuxt/components';
 <template>
   <div v-if="users">
     <Table :users="users" @toggleDeleteModal="toggleDeleteModal"></Table>
-    <div
-      class="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6"
-    >
-      <div class="flex flex-1 justify-between sm:hidden">
-        <a
-          href="#"
-          class="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-          >Previous</a
-        >
-        <a
-          href="#"
-          class="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-          >Next</a
-        >
-      </div>
-      <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
-        <div>
-          <p class="text-sm text-gray-700">
-            Showing
-            <span class="font-medium">1</span>
-            to
-            <span class="font-medium">10</span>
-            of
-            <span class="font-medium">97</span>
-            results
-          </p>
-        </div>
-        <div>
-          <nav
-            class="isolate inline-flex -space-x-px rounded-md shadow-sm"
-            aria-label="Pagination"
-          >
-            <a
-              href="#"
-              class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
-            >
-              <span class="sr-only">Previous</span>
-              <svg
-                class="h-5 w-5"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                aria-hidden="true"
-              >
-                <path
-                  fill-rule="evenodd"
-                  d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z"
-                  clip-rule="evenodd"
-                />
-              </svg>
-            </a>
-            <a
-              href="#"
-              class="relative hidden items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 md:inline-flex"
-              >3</a
-            >
-            <span
-              class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300 focus:outline-offset-0"
-              >...</span
-            >
-            <a
-              href="#"
-              class="relative hidden items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 md:inline-flex"
-              >8</a
-            >
-            <a
-              href="#"
-              class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
-            >
-              <span class="sr-only">Next</span>
-              <svg
-                class="h-5 w-5"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                aria-hidden="true"
-              >
-                <path
-                  fill-rule="evenodd"
-                  d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
-                  clip-rule="evenodd"
-                />
-              </svg>
-            </a>
-          </nav>
-        </div>
-      </div>
-    </div>
+    <Pagination :total="total" :per_page="per_page" :page="page"></Pagination>
     <ModalDelete
       :visible="showDeleteWarning"
       :id="selectedUserId"
@@ -102,7 +16,7 @@ const { $toast } = useNuxtApp();
 const config = useRuntimeConfig();
 
 const showDeleteWarning: Ref<boolean> = ref(false);
-const selectedUserId: Ref<Number | null> = ref(null);
+const selectedUserId: Ref<number | null> = ref(null);
 
 interface User {
   id: number;
@@ -112,30 +26,50 @@ interface User {
   is_active: boolean;
 }
 
-interface Response {
-  message: string;
-  success: boolean;
-  data: User[];
-}
+const per_page: Ref<number> = ref(10);
+const total: Ref<number> = ref(0);
+const page: Ref<number> = ref(1);
+const users: Ref<User[]> = ref([]);
 
 interface DeleteUserResponse {
   message: "string";
   success: boolean;
 }
 
+interface UserResponse {
+  total: number;
+  current_page: number;
+  data: User[];
+}
+
+interface Response {
+  message: string;
+  success: boolean;
+  users: UserResponse;
+}
+
 //methods
-const { data: users, refresh: refetchUsers } = await useLazyFetch(
-  `${config.public.base_url}/user`,
-  {
-    transform: (users: Response) => {
-      if (Array.isArray(users.data)) {
-        return users.data as User[];
-      } else {
-        throw new Error("Unexpected response format");
-      }
-    },
+const fetchData = async () => {
+  try {
+    const response = await $fetch<Response>(`${config.public.base_url}/user`, {
+      query: { per_page: per_page.value, page: 1 },
+    });
+    if (response.success) {
+      users.value = response.users.data;
+      total.value = response.users.total;
+      page.value = response.users.current_page;
+    }
+  } catch (error) {
+    if (typeof error === "object" && error !== null && "data" in error) {
+      let errResponse = error.data as DeleteUserResponse;
+      $toast.error(errResponse?.message);
+    } else {
+      $toast.error("An unexpected error occurred");
+    }
   }
-);
+};
+
+fetchData();
 
 const toggleDeleteModal = (id: number | null = null): void => {
   showDeleteWarning.value = !showDeleteWarning.value;
@@ -157,7 +91,7 @@ const deleteUser = async (): Promise<void> => {
       $toast.error("An unexpected error occurred");
     }
   } finally {
-    await refetchUsers();
+    await fetchData();
     toggleDeleteModal();
   }
 };
