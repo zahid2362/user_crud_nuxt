@@ -10,6 +10,7 @@ export function handleImageUpload (event , user){
 }
 
 export async function formSubmit(url, user, $fetch, $toast, router, errors, isUpdateData = false ){
+export async function formSubmit(url, user, $fetch, $toast, router, errors, isUpdateData = false ){
     const formData = new FormData();
 
     formData.append("name", user.name);
@@ -22,7 +23,15 @@ export async function formSubmit(url, user, $fetch, $toast, router, errors, isUp
 
     if (user.avatar && typeof user.avatar != "string") {
         formData.append("avatar", user.avatar);
+    if(isUpdateData){
+        formData.append("is_active", user.is_active ? "1" : "0");
+        formData.append("_method", "PUT");
     }
+
+    if (user.avatar && typeof user.avatar != "string") {
+        formData.append("avatar", user.avatar);
+    }
+
 
 
     try {
