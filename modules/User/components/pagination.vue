@@ -35,9 +35,10 @@
           class="isolate inline-flex -space-x-px rounded-md shadow-sm"
           aria-label="Pagination"
         >
-          <a
-            href="#"
-            class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+          <button
+            :disabled="1 == props.page"
+            class="relative inline-flex items-center rounded-l-md px-2 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+            @click="updatePageChange('previous')"
           >
             <span class="sr-only">Previous</span>
             <svg
@@ -52,18 +53,21 @@
                 clip-rule="evenodd"
               />
             </svg>
-          </a>
-          <a
+          </button>
+          <button
             v-for="pageNumber in totalPage"
             :key="pageNumber"
-            href="#"
+            :disabled="pageNumber == props.page"
             class="relative hidden items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 md:inline-flex"
-            >{{ pageNumber }}</a
+            @click="changePage(pageNumber)"
           >
+            {{ pageNumber }}
+          </button>
 
-          <a
-            href="#"
-            class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+          <button
+            :disabled="totalPage == props.page"
+            class="relative inline-flex items-center rounded-r-md px-2 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+            @click="updatePageChange('next')"
           >
             <span class="sr-only">Next</span>
             <svg
@@ -78,7 +82,7 @@
                 clip-rule="evenodd"
               />
             </svg>
-          </a>
+          </button>
         </nav>
       </div>
     </div>
@@ -86,17 +90,21 @@
 </template>
 
 <script setup lang="ts">
-interface Props {
-  total: number;
-  page: number;
-  per_page: number;
-}
+import type { PaginationProps, PaginationEmits } from "../interface/User";
 
-const props = defineProps<Props>();
+const props = defineProps<PaginationProps>();
+const emit = defineEmits<PaginationEmits>();
 
 const totalPage = computed(() => {
   return props.total < 10 ? 1 : Math.ceil(props.total / props.per_page);
 });
+
+const changePage = (pageNo: number) => {
+  emit("change", pageNo);
+};
+const updatePageChange = (type: string) => {
+  emit("change", type == "next" ? props.page + 1 : props.page - 1);
+};
 </script>
 
 <style scoped></style>

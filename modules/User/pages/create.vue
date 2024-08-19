@@ -1,3 +1,4 @@
+import { RuntimeConfig } from '@nuxt/schema';
 <template>
   <div>
     <form @submit.prevent="submit">
@@ -13,7 +14,7 @@
           />
 
           <FormErrorMessage
-            v-if="errors.name"
+            v-if="errors.name && errors.name.length == 1"
             :message="errors.name[0]"
           ></FormErrorMessage>
         </div>
@@ -27,7 +28,7 @@
             placeholder="Enter your email"
           />
           <FormErrorMessage
-            v-if="errors.email"
+            v-if="errors.email && errors.email.length == 1"
             :message="errors.email[0]"
           ></FormErrorMessage>
         </div>
@@ -41,22 +42,11 @@
             placeholder="Enter your password"
           />
           <FormErrorMessage
-            v-if="errors.password"
+            v-if="errors.password && errors.password.length == 1"
             :message="errors.password[0]"
           ></FormErrorMessage>
         </div>
-
-        <div class="flex">
-          <div
-            v-if="typeof user.avatar == 'string'"
-            class="rounded-lg block p-1.5"
-          >
-            <img
-              class="w-10 h-10 rounded-full"
-              :src="user.avatar"
-              :alt="user.name"
-            />
-          </div>
+        <div>
           <input
             @change="handleFileUpload"
             :class="getErrorInputClass('avatar')"
@@ -66,26 +56,8 @@
             accept="image/*"
           />
           <FormErrorMessage
-            v-if="errors.avatar"
+            v-if="errors.avatar && errors.avatar.length == 1"
             :message="errors.avatar[0]"
-          ></FormErrorMessage>
-        </div>
-        <div class="flex items-center mb-4">
-          <input
-            id="is_active"
-            type="checkbox"
-            value="1"
-            class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-            v-model="user.is_active"
-          />
-          <label
-            for="is_active"
-            class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300"
-            >Active</label
-          >
-          <FormErrorMessage
-            v-if="errors.is_active"
-            :message="errors.is_active[0]"
           ></FormErrorMessage>
         </div>
       </div>
@@ -94,55 +66,59 @@
         type="submit"
         class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
       >
-        update
+        save
       </button>
     </form>
   </div>
 </template>
 
-<script setup>
-import { handleImageUpload, formSubmit, errorInputClass } from "@/user";
+<script setup lang="ts">
+import { userService } from "../Service/user";
+import type { UserCreate, ValidationErrors } from "./../interface/User";
+
 const { $toast } = useNuxtApp();
 const config = useRuntimeConfig();
 const router = useRouter();
 
-const { data: user, error: userError } = await useFetch(
-  `${config.public.base_url}/user/${useRoute().params.id}`,
-  {
-    transform: (users) => {
-      let userData = users.data;
-      userData.is_active = !!userData.is_active;
-      return userData;
-    },
-  }
-);
-if (userError.value?.data?.success == false) {
-  $toast.error(userError.value?.data?.message);
-  router.push({ path: "/" });
-}
-const errors = ref({});
+const user: Ref<UserCreate> = ref({
+  name: "",
+  email: "",
+  password: "",
+  avatar: null,
+});
 
-const handleFileUpload = (event) => {
-  try {
-    handleImageUpload(event, user);
-  } catch (error) {
-    $toast.error(error.message);
-  }
+const errors: Ref<ValidationErrors> = ref({
+  email: [],
+  password: [],
+  avatar: [],
+  name: [],
+});
+
+const handleFileUpload = (event: Event) => {
+  userService.handleImageUpload(event, user, $toast);
 };
+
 const submit = async () => {
-  formSubmit(
-    `${config.public.base_url}/user/${useRoute().params.id}`,
+  await userService.create(
     user.value,
-    $fetch,
-    $toast,
-    router,
     errors,
-    true
+    $toast,
+    `${config.public.base_url}/user`,
+    router
   );
 };
 
-const getErrorInputClass = (field) => {
-  return errorInputClass(errors.value, field);
+const getErrorInputClass = (field: keyof ValidationErrors): Array<string> => {
+  return errors.value[field] && errors.value[field].length == 1
+    ? [
+        "bg-red-50",
+        "border-red-500",
+        "text-red-900",
+        "placeholder-red-700",
+        "focus:ring-red-500",
+        "focus:border-red-500",
+      ]
+    : [];
 };
 </script>
 
