@@ -1,16 +1,16 @@
 <template>
-  <div v-if="userStore.users">
-    <Table :users="userStore.users" @toggleDeleteModal="userStore.toggleDeleteModal"></Table>
+  <div v-if="userListStore.users">
+    <Table :users="userListStore.users" @toggleDeleteModal="userListStore.toggleDeleteModal"></Table>
     <Pagination
-      :total="userStore.total"
-      :per_page="userStore.per_page"
-      :page="userStore.page"
+      :total="userListStore.total"
+      :per_page="userListStore.per_page"
+      :page="userListStore.page"
       @change="pageChange"
     ></Pagination>
     <ModalDelete
-      :visible="userStore.showDeleteWarning"
-      :id="userStore.selectedUserId"
-      @close="userStore.toggleDeleteModal"
+      :visible="userListStore.showDeleteWarning"
+      :id="userListStore.selectedUserId"
+      @close="userListStore.toggleDeleteModal"
       @confirm="deleteUser"
     ></ModalDelete>
   </div>
@@ -21,32 +21,25 @@ import {useUserListStore} from './../stores/User'
 import { userService } from "./../Service/user";
 const { $toast } = useNuxtApp();
 const config = useRuntimeConfig();
-const userStore = useUserListStore();
+const userListStore = useUserListStore();
 
 //methods
 const fetchData = async () => {
-  await userService.index(
-    `${config.public.base_url}/user`,
-    $toast,
-    userStore
-  );
+  const url = `${config.public.base_url}/user`;
+  await userService.index(url,$toast,userListStore);
 };
 
-fetchData();
+await fetchData();
 
 const pageChange = async (pageNo: number = 1): Promise<void> => {
-  userStore.changePage(pageNo)
+  userListStore.changePage(pageNo)
   await fetchData();
 };
 
 const deleteUser = async (): Promise<void> => {
-  await userService.delete(
-    `${config.public.base_url}/user/${userStore.selectedUserId}`,
-    $toast
-  );
+  const url = `${config.public.base_url}/user/${userListStore.selectedUserId}`
+  await userService.delete(url, $toast);
   await fetchData();
-  userStore.toggleDeleteModal();
+  userListStore.toggleDeleteModal();
 };
 </script>
-
-<style scoped></style>

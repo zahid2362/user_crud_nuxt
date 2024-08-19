@@ -1,15 +1,15 @@
-import type { User, UserList, GeneralResponse, UserCreate,UserUpdate, ValidationErrors, ErrorResponse ,ShowResponse} from "./../interface/User";
+import type { User, UserList, GeneralResponse, UserCreate,SingleUser, ValidationErrors, ErrorResponse ,ShowResponse} from "./../interface/User";
 import type { Router } from 'vue-router';
 
 class UserService {
-    async index(url: string, $toast: any , userStore:any):Promise<void>{
+    async index(url: string, $toast: any , userListStore:any):Promise<void>{
         try {
-            const res:Response = await fetch(`${url}?per_page=${userStore.per_page}&page=${userStore.page}`);
+            const res:Response = await fetch(`${url}?per_page=${userListStore.per_page}&page=${userListStore.page}`);
             if(res.ok){
                 let response:UserList = await res.json()
                 if (response.success) {
-                    userStore.setUsers(response.users.data)
-                    userStore.setTotalPage(response.users.total,response.users.current_page)
+                    userListStore.setUsers(response.users.data)
+                    userListStore.setTotalPage(response.users.total,response.users.current_page)
                 }
             }else{
                 let errorResponse:GeneralResponse = await res.json()
@@ -41,9 +41,10 @@ class UserService {
           }
     }
 
-    async create(user: UserCreate , errors:Ref<ValidationErrors> , $toast:any , url: string , router:Router):Promise<void>{
+    async create(userStore: any , $toast:any , url: string , router:Router):Promise<void>{
+        const user = userStore.getCreateUserData;
         const formData = new FormData();
-
+        
         formData.append("name", user.name);
         formData.append("email", user.email);
         formData.append("password", user.password);
@@ -59,20 +60,20 @@ class UserService {
             });
             if(res.ok){
                 let response = await res.json()
-                console.log(response);
                 $toast.success(response?.message);
                 router.push({ path: "/user" });
             }else{
                 let errorResponse:ErrorResponse = await res.json()
-                errors.value =errorResponse.errors
+                userStore.setErrors(errorResponse.errors)
                 $toast.error(errorResponse?.message);
             }
-        } catch (error:unknown) {
+        } catch (error:unknown) {            
            this.errorHandle(error, $toast)
         }
     }
 
-    async update(user: UserUpdate , errors:Ref<ValidationErrors> , $toast:any , url: string , router:Router):Promise<void>{
+    async update(userStore: any , $toast:any , url: string , router:Router):Promise<void>{
+        const user = userStore.getUserData;
         const formData = new FormData();
 
         formData.append("name", user.name);
@@ -86,7 +87,7 @@ class UserService {
       
         if (user.avatar && typeof user.avatar != "string") {
           formData.append("avatar", user.avatar);
-        }  
+        }          
 
         try {
             const res: Response = await fetch(url, {
@@ -95,12 +96,11 @@ class UserService {
             });
             if(res.ok){
                 let response = await res.json()
-                console.log(response);
                 $toast.success(response?.message);
                 router.push({ path: "/user" });
             }else{
                 let errorResponse:ErrorResponse = await res.json()
-                errors.value = errorResponse.errors
+                userStore.setErrors(errorResponse.errors)
                 $toast.error(errorResponse?.message);
             }
         } catch (error:unknown) {
@@ -108,13 +108,14 @@ class UserService {
         }
     }
 
-    async show(url: string, user:Ref<UserUpdate> , $toast: any , router:Router):Promise<void>{
+
+    async show(url: string, $toast: any , router:Router , userStore: any):Promise<void>{
         try {
             const res:Response = await fetch(url);
             if(res.ok){
                 let response:ShowResponse = await res.json()
                 if (response.success) {
-                    user.value = response.data;
+                    userStore.setUserData(response.data)
                 }else{
                     $toast.error(response?.message);
                     router.push({ path: "/user" });
@@ -130,11 +131,11 @@ class UserService {
         }
     }
 
-    handleImageUpload(event: Event , user: Ref<UserCreate> | Ref<UserUpdate>, $toast: any ):void{
+    handleImageUpload(event: Event , userStore:any, $toast: any , is_update:boolean = false):void{
         const target = event.target as HTMLInputElement;
         const file = target.files ? target.files[0] : null;
         if (file && file.type.startsWith("image/")) {
-          user.value.avatar = file;
+            userStore.setAvatar(file , is_update)
         } else {
           target.value = "";
           $toast.error("Selected file is not an image!");

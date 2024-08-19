@@ -13,7 +13,7 @@ export interface UserCreate {
   avatar: File | null;
 }
 
-export interface UserUpdate {
+export interface SingleUser {
   id: number;
   name: string;
   email: string;
@@ -50,7 +50,7 @@ export interface GeneralResponse {
 }
 
 export interface ShowResponse {
-  data: UserUpdate;
+  data: SingleUser;
   success: boolean;
   message: string | null;
 }

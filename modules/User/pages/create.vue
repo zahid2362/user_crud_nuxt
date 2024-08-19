@@ -1,63 +1,58 @@
-import { RuntimeConfig } from '@nuxt/schema';
 <template>
   <div>
     <form @submit.prevent="submit">
       <div class="grid gap-6 mb-6 md:grid-cols-2">
         <div class="mb-6">
           <input
-            v-model="user.name"
+            v-model="userStore.createUser.name"
             type="text"
             id="name"
-            :class="getErrorInputClass('name')"
-            class="border text-sm rounded-lg block w-full p-2.5 border-gray-30"
+            :class="['border', 'text-sm', 'rounded-lg', 'block', 'w-full', 'p-2.5', getFieldErrorClass('name')]"
             placeholder="Enter your name"
           />
 
           <FormErrorMessage
-            v-if="errors.name && errors.name.length == 1"
-            :message="errors.name[0]"
+            v-if="userStore?.errors?.name && userStore?.errors?.name.length > 0"
+            :message="userStore?.errors?.name[0]"
           ></FormErrorMessage>
         </div>
         <div>
           <input
-            v-model="user.email"
+            v-model="userStore.createUser.email"
             type="email"
             id="email"
-            :class="getErrorInputClass('email')"
-            class="border border-gray-300 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+            :class="['border', 'text-sm', 'rounded-lg', 'block', 'w-full', 'p-2.5', getFieldErrorClass('email')]"
             placeholder="Enter your email"
           />
           <FormErrorMessage
-            v-if="errors.email && errors.email.length == 1"
-            :message="errors.email[0]"
+            v-if="userStore?.errors?.email && userStore?.errors?.email.length > 0"
+            :message="userStore?.errors?.email[0]"
           ></FormErrorMessage>
         </div>
         <div>
           <input
-            v-model="user.password"
+            v-model="userStore.createUser.password"
             type="password"
             id="password"
-            :class="getErrorInputClass('password')"
-            class="border border-gray-300 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+            :class="['border', 'text-sm', 'rounded-lg', 'block', 'w-full', 'p-2.5', getFieldErrorClass('password')]"
             placeholder="Enter your password"
           />
           <FormErrorMessage
-            v-if="errors.password && errors.password.length == 1"
-            :message="errors.password[0]"
+            v-if="userStore?.errors?.password && userStore?.errors?.password.length > 0"
+            :message="userStore?.errors?.password[0]"
           ></FormErrorMessage>
         </div>
         <div>
           <input
             @change="handleFileUpload"
-            :class="getErrorInputClass('avatar')"
-            class="border text-sm border-gray-300 cursor-pointer bg-gray-50 focus:outline-none rounded-lg block w-full p-1.5"
+            :class="['border', 'text-sm', 'rounded-lg', 'block', 'w-full', 'p-2.5', getFieldErrorClass('avatar')]"
             id="avatar"
             type="file"
             accept="image/*"
           />
           <FormErrorMessage
-            v-if="errors.avatar && errors.avatar.length == 1"
-            :message="errors.avatar[0]"
+            v-if="userStore?.errors?.avatar && userStore?.errors?.avatar.length > 0"
+            :message="userStore?.errors?.avatar[0]"
           ></FormErrorMessage>
         </div>
       </div>
@@ -74,52 +69,31 @@ import { RuntimeConfig } from '@nuxt/schema';
 
 <script setup lang="ts">
 import { userService } from "../Service/user";
-import type { UserCreate, ValidationErrors } from "./../interface/User";
+import type { ValidationErrors } from "./../interface/User";
+import {useUserListStore} from './../stores/User'
 
 const { $toast } = useNuxtApp();
 const config = useRuntimeConfig();
 const router = useRouter();
-
-const user: Ref<UserCreate> = ref({
-  name: "",
-  email: "",
-  password: "",
-  avatar: null,
-});
-
-const errors: Ref<ValidationErrors> = ref({
-  email: [],
-  password: [],
-  avatar: [],
-  name: [],
-});
-
+const userStore = useUserListStore();
+userStore.clearErrors()
 const handleFileUpload = (event: Event) => {
-  userService.handleImageUpload(event, user, $toast);
+  userService.handleImageUpload(event, userStore, $toast);
 };
 
 const submit = async () => {
+  const url = `${config.public.base_url}/user`;
   await userService.create(
-    user.value,
-    errors,
+    userStore,
     $toast,
-    `${config.public.base_url}/user`,
+    url,
     router
   );
 };
 
-const getErrorInputClass = (field: keyof ValidationErrors): Array<string> => {
-  return errors.value[field] && errors.value[field].length == 1
-    ? [
-        "bg-red-50",
-        "border-red-500",
-        "text-red-900",
-        "placeholder-red-700",
-        "focus:ring-red-500",
-        "focus:border-red-500",
-      ]
-    : [];
+const getFieldErrorClass = (field: keyof ValidationErrors): Array<string> => {
+  const error = userStore.getErrors
+  return error[field] && error[field].length == 1
+    ? userStore.getErrorFormClass : [];
 };
 </script>
-
-<style lang="scss" scoped></style>

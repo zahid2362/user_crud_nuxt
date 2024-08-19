@@ -4,70 +4,66 @@
       <div class="grid gap-6 mb-6 md:grid-cols-2">
         <div class="mb-6">
           <input
-            v-model="user.name"
+            v-model="userStore.user.name"
             type="text"
             id="name"
-            :class="getErrorInputClass('name')"
-            class="border text-sm rounded-lg block w-full p-2.5 border-gray-30"
+            :class="['border', 'text-sm', 'rounded-lg', 'block', 'w-full', 'p-2.5', getFieldErrorClass('name')]"
             placeholder="Enter your name"
           />
 
           <FormErrorMessage
-            v-if="errors.name && errors.name.length == 1"
-            :message="errors.name[0]"
+            v-if="userStore?.errors?.name?.length > 0 "
+            :message="userStore?.errors?.name[0]"
           ></FormErrorMessage>
         </div>
         <div>
           <input
-            v-model="user.email"
+            v-model="userStore.user.email"
             type="email"
             id="email"
-            :class="getErrorInputClass('email')"
-            class="border border-gray-300 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+            :class="['border', 'text-sm', 'rounded-lg', 'block', 'w-full', 'p-2.5', getFieldErrorClass('email')]"
             placeholder="Enter your email"
           />
           <FormErrorMessage
-            v-if="errors.email && errors.email.length == 1"
-            :message="errors.email[0]"
+            v-if=" userStore?.errors?.email?.length > 0"
+            :message="userStore?.errors?.email[0]"
           ></FormErrorMessage>
         </div>
         <div>
           <input
-            v-model="user.password"
+            v-model="userStore.user.password"
             type="password"
             id="password"
-            :class="getErrorInputClass('password')"
-            class="border border-gray-300 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+            :class="['border', 'text-sm', 'rounded-lg', 'block', 'w-full', 'p-2.5', getFieldErrorClass('password')]"
             placeholder="Enter your password"
           />
           <FormErrorMessage
-            v-if="errors.password && errors.password.length == 1"
-            :message="errors.password[0]"
+            v-if="userStore?.errors?.password?.length > 0"
+            :message="userStore?.errors?.password[0]"
           ></FormErrorMessage>
         </div>
 
         <div class="flex">
           <div
-            v-if="typeof user.avatar == 'string'"
+            v-if="typeof userStore.user.avatar == 'string'"
             class="rounded-lg block p-1.5"
           >
             <img
               class="w-10 h-10 rounded-full"
-              :src="user.avatar"
-              :alt="user.name"
+              :src="userStore.user.avatar"
+              :alt="userStore.user.name"
             />
           </div>
           <input
             @change="handleFileUpload"
-            :class="getErrorInputClass('avatar')"
-            class="border text-sm border-gray-300 cursor-pointer bg-gray-50 focus:outline-none rounded-lg block w-full p-1.5"
+            :class="['border', 'text-sm', 'rounded-lg', 'block', 'w-full', 'p-2.5', getFieldErrorClass('avatar')]"
             id="avatar"
             type="file"
             accept="image/*"
           />
           <FormErrorMessage
-            v-if="errors.avatar && errors.avatar.length == 1"
-            :message="errors.avatar[0]"
+            v-if="userStore?.errors?.avatar?.length > 0"
+            :message="userStore?.errors?.avatar[0]"
           ></FormErrorMessage>
         </div>
         <div class="flex items-center mb-4">
@@ -76,7 +72,7 @@
             type="checkbox"
             value="1"
             class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-            v-model="user.is_active"
+            v-model="userStore.user.is_active"
           />
           <label
             for="is_active"
@@ -84,8 +80,8 @@
             >Active</label
           >
           <FormErrorMessage
-            v-if="errors.is_active && errors.is_active.length == 1"
-            :message="errors.is_active[0]"
+            v-if="userStore?.errors?.is_active?.length > 0"
+            :message="userStore?.errors?.is_active[0]"
           ></FormErrorMessage>
         </div>
       </div>
@@ -102,67 +98,34 @@
 
 <script setup lang="ts">
 import { userService } from "../Service/user";
-import type { UserUpdate, ValidationErrors } from "./../interface/User";
+import type { ValidationErrors } from "./../interface/User";
+import {useUserListStore} from './../stores/User'
 
 const { $toast } = useNuxtApp();
 const config = useRuntimeConfig();
 const router = useRouter();
-
-const user: Ref<UserUpdate> = ref({
-  name: "",
-  email: "",
-  password: null,
-  avatar: null,
-  is_active: false,
-  id: 0
-});
-
-
-
-const errors: Ref<ValidationErrors> = ref({
-  email: [],
-  password: [],
-  avatar: [],
-  name: [],
-});
+const userStore = useUserListStore();
 
 const fetchData = async () => {
-  userService.show(
-    `${config.public.base_url}/user/${useRoute().params.id}`,
-    user,
-    $toast,
-    router
-  );
+  const url =`${config.public.base_url}/user/${useRoute().params.id}`;
+  userService.show(url,$toast,router,userStore);
 };
 
-fetchData();
+await fetchData();
+userStore.clearErrors()
 
 const handleFileUpload = (event: Event) => {
-  userService.handleImageUpload(event, user, $toast);
+  userService.handleImageUpload(event, userStore, $toast , true);
 };
 
 const submit = async () => {
-  await userService.update(
-    user.value,
-    errors,
-    $toast,
-    `${config.public.base_url}/user/${useRoute().params.id}`,
-    router
-  );
+  const url = `${config.public.base_url}/user/${useRoute().params.id}`;
+  await userService.update(userStore,$toast,url,router);
 };
 
-const getErrorInputClass = (field: keyof ValidationErrors): Array<string> => {
-  return errors.value[field] && errors.value[field].length == 1
-    ? [
-        "bg-red-50",
-        "border-red-500",
-        "text-red-900",
-        "placeholder-red-700",
-        "focus:ring-red-500",
-        "focus:border-red-500",
-      ]
-    : [];
+const getFieldErrorClass = (field: keyof ValidationErrors): Array<string> => {
+  const error = userStore.getErrors
+  return error[field] && error[field].length == 1
+    ? userStore.getErrorFormClass : [];
 };
 </script>
-
-<style lang="scss" scoped></style>
