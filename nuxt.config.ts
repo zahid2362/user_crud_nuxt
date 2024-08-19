@@ -13,7 +13,6 @@ export default defineNuxtConfig({
       base_url: process.env.NUXT_PUBLIC_API_BASE
     }
   },
-
   css: ['~/assets/css/main.css'],
 
   postcss: {
