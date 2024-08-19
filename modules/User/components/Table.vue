@@ -63,19 +63,10 @@
 </template>
 
 <script setup lang="ts">
-interface User {
-  id: number;
-  name: string;
-  email: string;
-  avatar: string | null;
-  is_active: boolean;
-}
+import type { TableProps } from "../interface/User";
 
-interface Props {
-  users: User[];
-}
+const props = defineProps<TableProps>();
 
-const props = defineProps<Props>();
 const generateEditLink = (id: Number): string => {
   return `/user/${id}`;
 };

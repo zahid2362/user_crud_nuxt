@@ -5,10 +5,9 @@
 </template>
 
 <script setup lang="ts">
-interface Props {
-  message: string;
-}
-const props = defineProps<Props>();
+import type { ErrorMessageProps } from "../../interface/User";
+
+const props = defineProps<ErrorMessageProps>();
 </script>
 
 <style lang="scss" scoped></style>

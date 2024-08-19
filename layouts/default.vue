@@ -5,6 +5,7 @@
         <NuxtLink to="/" class="font-bold">User</NuxtLink>
         <ul class="flex gap-4">
           <li><NuxtLink to="/">Home </NuxtLink></li>
+          <li><NuxtLink to="/user">User </NuxtLink></li>
           <li><NuxtLink to="/user/create">Create User </NuxtLink></li>
         </ul>
       </nav>
