@@ -1,3 +1,5 @@
+import type { Router } from 'vue-router';
+
 export interface User {
     id: number;
     name: string;
@@ -83,5 +85,13 @@ export interface PaginationProps {
     (event: "close"): () => void;
     (event: "confirm"): () => void;
   }
-  
-
+  export interface UserServiceInterface{
+    index(url: string, $toast: any, userListStore: any): Promise<void>;
+    create(url: string, $toast: any, userStore: any, router: Router): Promise<void>;
+    show(url: string, $toast: any, userStore: any, router: Router): Promise<void>;
+    update(url: string, $toast: any, userStore: any, router: Router): Promise<void>;
+    delete(url: string, $toast: any): Promise<void>;
+    handleImageUpload(event: Event,  $toast: any, is_update: boolean): void;
+    getErrorInputClass(errors: ValidationErrors, field: keyof ValidationErrors): Array<string>;
+    errorHandle(error: unknown, $toast: any): void;
+  }

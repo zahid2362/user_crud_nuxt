@@ -1,7 +1,8 @@
-import type { User, UserList, GeneralResponse, UserCreate,SingleUser, ValidationErrors, ErrorResponse ,ShowResponse} from "./../interface/User";
+import type { UserList, GeneralResponse, ValidationErrors, ErrorResponse ,ShowResponse, UserServiceInterface} from "./../interface/User";
 import type { Router } from 'vue-router';
 
-class UserService {
+class UserService implements UserServiceInterface{
+
     async index(url: string, $toast: any , userListStore:any):Promise<void>{
         try {
             const res:Response = await fetch(`${url}?per_page=${userListStore.per_page}&page=${userListStore.page}`);
@@ -21,27 +22,7 @@ class UserService {
         }
     }
 
-    async delete(url: string , $toast:any) :Promise<void>{
-        try {
-            const res:Response = await fetch(
-              url,
-              { method: "delete" }
-            );
-            if(res.ok){
-                let response:GeneralResponse = await res.json()
-                if (response.success) {
-                    $toast.success(response.message);
-                } else {
-                    $toast.error(response.message);
-                }
-            }
-            
-          } catch (error) {
-            this.errorHandle(error, $toast)
-          }
-    }
-
-    async create(userStore: any , $toast:any , url: string , router:Router):Promise<void>{
+    async create(url: string, $toast: any, userStore: any, router: Router):Promise<void>{
         const user = userStore.getCreateUserData;
         const formData = new FormData();
         
@@ -72,7 +53,29 @@ class UserService {
         }
     }
 
-    async update(userStore: any , $toast:any , url: string , router:Router):Promise<void>{
+    async show(url: string, $toast: any, userStore: any, router: Router):Promise<void>{
+        try {
+            const res:Response = await fetch(url);
+            if(res.ok){
+                let response:ShowResponse = await res.json()
+                if (response.success) {
+                    userStore.setUserData(response.data)
+                }else{
+                    $toast.error(response?.message);
+                    router.push({ path: "/user" });
+                }
+            }else{
+                let errorResponse:GeneralResponse = await res.json()
+                $toast.error(errorResponse?.message);
+                router.push({ path: "/user" });
+            }
+          
+        } catch (error:unknown) {
+            this.errorHandle(error ,  $toast)
+        }
+    }
+
+    async update(url: string, $toast: any, userStore: any, router: Router):Promise<void>{
         const user = userStore.getUserData;
         const formData = new FormData();
 
@@ -108,27 +111,24 @@ class UserService {
         }
     }
 
-
-    async show(url: string, $toast: any , router:Router , userStore: any):Promise<void>{
+    async delete(url: string, $toast: any) :Promise<void>{
         try {
-            const res:Response = await fetch(url);
+            const res:Response = await fetch(
+              url,
+              { method: "delete" }
+            );
             if(res.ok){
-                let response:ShowResponse = await res.json()
+                let response:GeneralResponse = await res.json()
                 if (response.success) {
-                    userStore.setUserData(response.data)
-                }else{
-                    $toast.error(response?.message);
-                    router.push({ path: "/user" });
+                    $toast.success(response.message);
+                } else {
+                    $toast.error(response.message);
                 }
-            }else{
-                let errorResponse:GeneralResponse = await res.json()
-                $toast.error(errorResponse?.message);
-                router.push({ path: "/user" });
             }
-          
-        } catch (error:unknown) {
-            this.errorHandle(error ,  $toast)
-        }
+            
+          } catch (error) {
+            this.errorHandle(error, $toast)
+          }
     }
 
     handleImageUpload(event: Event , userStore:any, $toast: any , is_update:boolean = false):void{
@@ -156,7 +156,7 @@ class UserService {
     }
 
     errorHandle(error:unknown ,  $toast: any):void{
-        if (typeof error === "object" && error !== null && "data" in error) {
+        if (error !== null && typeof error === "object" && "data" in error) {
             let errResponse = error.data as GeneralResponse;
             $toast.error(errResponse?.message);
         } else {
