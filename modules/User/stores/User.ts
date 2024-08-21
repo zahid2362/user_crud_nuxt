@@ -31,19 +31,19 @@ export const useUserListStore = defineStore('userList',{
             }
         },
         getters:{
-            getUserList(state:any):void{
+            getUserList(state){
                 return state.users
             },
-            getCreateUserData(state:any):void{
+            getCreateUserData(state){
                 return state.createUser
             },
-            getErrors(state:any):void{
+            getErrors(state){
                 return state.errors
             },
-            getErrorFormClass(state:any):void{
+            getErrorFormClass(state){
                 return state.errorFormClass
             },
-            getUserData(state:any):void{
+            getUserData(state){
                 return state.user
             }
         },
@@ -76,7 +76,7 @@ export const useUserListStore = defineStore('userList',{
                 this.user = user
             },
             clearErrors():void{
-                this.error = {}
+                this.errors = {}
             }
         }
 })

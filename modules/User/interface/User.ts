@@ -31,11 +31,13 @@ export interface TableProps {
 export interface UserList {
     message: string;
     success: boolean;
-    users: {
-      total: number;
-      current_page: number;
-      data: User[];
-    };
+    data:{
+      users: {
+        total: number;
+        current_page: number;
+        data: User[];
+      };
+    }
   }
 
  export interface ValidationErrors {
@@ -78,16 +80,15 @@ export interface PaginationProps {
   }
 
   export interface DeleteModalProps {
-    visible: Boolean;
+    visible: boolean;
   }
 
   export interface DeleteModalEmits {
-    (event: "close"): () => void;
-    (event: "confirm"): () => void;
+    (event: "close" | "confirm"): () => void;
   }
   export interface UserServiceInterface{
-    index(url: string, $toast: any, userListStore: any): Promise<void>;
-    create(url: string, $toast: any, userStore: any, router: Router): Promise<void>;
+    index(url: string, $fetch: any, $toast: any, userListStore: any): Promise<void>;
+    create(url: string, $fetch: any, $toast: any, userStore: any, router: Router): Promise<void>;
     show(url: string, $toast: any, userStore: any, router: Router): Promise<void>;
     update(url: string, $toast: any, userStore: any, router: Router): Promise<void>;
     delete(url: string, $toast: any): Promise<void>;

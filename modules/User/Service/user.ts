@@ -3,26 +3,26 @@ import type { Router } from 'vue-router';
 
 class UserService implements UserServiceInterface{
 
-    async index(url: string, $toast: any , userListStore:any):Promise<void>{
+    async index(url: string, $fetch: any, $toast: any , userListStore: any):Promise<void>{
+       
         try {
-            const res:Response = await fetch(`${url}?per_page=${userListStore.per_page}&page=${userListStore.page}`);
-            if(res.ok){
-                let response:UserList = await res.json()
-                if (response.success) {
-                    userListStore.setUsers(response.users.data)
-                    userListStore.setTotalPage(response.users.total,response.users.current_page)
+            const response = await $fetch(url, {
+                query:{
+                    'per_page':userListStore.per_page,
+                    'page':userListStore.page,
                 }
-            }else{
-                let errorResponse:GeneralResponse = await res.json()
-                $toast.error(errorResponse?.message);
+            })
+            
+            if(response?.success){
+                userListStore.setUsers(response.data.data)
+                userListStore.setTotalPage(response.data.total, response.data.current_page)
             }
-          
-        } catch (error:unknown) {            
+        } catch (error: unknown) {    
             this.errorHandle(error ,  $toast)
         }
     }
 
-    async create(url: string, $toast: any, userStore: any, router: Router):Promise<void>{
+    async create(url: string, $fetch: any , $toast: any, userStore: any, router: Router):Promise<void>{
         const user = userStore.getCreateUserData;
         const formData = new FormData();
         
@@ -40,11 +40,11 @@ class UserService implements UserServiceInterface{
                 body: formData,
             });
             if(res.ok){
-                let response = await res.json()
+                const response = await res.json()
                 $toast.success(response?.message);
                 router.push({ path: "/user" });
             }else{
-                let errorResponse:ErrorResponse = await res.json()
+                const errorResponse:ErrorResponse = await res.json()
                 userStore.setErrors(errorResponse.errors)
                 $toast.error(errorResponse?.message);
             }
@@ -155,11 +155,11 @@ class UserService implements UserServiceInterface{
         : [];
     }
 
-    errorHandle(error:unknown ,  $toast: any):void{
-        if (error !== null && typeof error === "object" && "data" in error) {
-            let errResponse = error.data as GeneralResponse;
+    errorHandle(error:unknown, $toast: any):void{
+        if (error !== null && typeof error === "object" && 'data' in error) {
+            const errResponse = error.data as GeneralResponse;
             $toast.error(errResponse?.message);
-        } else {
+        } else {            
             $toast.error("An unexpected error occurred");
         }
     }

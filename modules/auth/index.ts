@@ -4,8 +4,8 @@ import type { Nuxt } from "nuxt/schema";
 
     export default defineNuxtModule({
         meta:{
-            name: "user-module",
-            configKey: "user-module",
+            name: "auth-module",
+            configKey: "auth-module",
             compatibility:{
                 nuxt: "^3.12.4"
             }
@@ -24,19 +24,9 @@ import type { Nuxt } from "nuxt/schema";
             //register page
             nuxt.hook("pages:extend",(pages)=>{
                 pages.push({
-                    name:'user.index',
-                    path:'/user',
+                    name:'auth.login',
+                    path:'/login',
                     file: resolve(__dirname, './pages/index.vue'),
-                })
-                pages.push({
-                    name:'user.create',
-                    path:'/user/create',
-                    file: resolve(__dirname, './pages/create.vue'),
-                })
-                pages.push({
-                    name:'user.update',
-                    path:'/user/:id',
-                    file: resolve(__dirname, './pages/[id].vue'),
                 })
             })
         }

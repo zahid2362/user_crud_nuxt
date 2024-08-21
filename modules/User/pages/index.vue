@@ -17,19 +17,28 @@
 </template>
 
 <script setup lang="ts">
+
+
 import {useUserListStore} from './../stores/User'
 import { userService } from "./../Service/user";
 const { $toast } = useNuxtApp();
 const config = useRuntimeConfig();
 const userListStore = useUserListStore();
-
+const user = useSanctumUser();
+console.log(user.value , 'auth');
+const client = useSanctumClient();
+definePageMeta({
+  middleware: ['sanctum:auth'],
+})
 //methods
 const fetchData = async () => {
   const url = `${config.public.base_url}/user`;
-  await userService.index(url,$toast,userListStore);
+  await userService.index(url, client, $toast, userListStore);
 };
 
-await fetchData();
+onMounted(async() => {
+  await fetchData();
+});
 
 const pageChange = async (pageNo: number = 1): Promise<void> => {
   userListStore.changePage(pageNo)
