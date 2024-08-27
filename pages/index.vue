@@ -1,3 +1,3 @@
 <template>
-  <h1 class="flex justify-center">User Crud</h1>
+  <div><h1>asdf</h1></div>
 </template>

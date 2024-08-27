@@ -10,12 +10,13 @@ class UserService implements UserServiceInterface{
                 query:{
                     'per_page':userListStore.per_page,
                     'page':userListStore.page,
-                }
+                },
+                server: false
             })
             
             if(response?.success){
-                userListStore.setUsers(response.data.data)
-                userListStore.setTotalPage(response.data.total, response.data.current_page)
+                userListStore.setUsers(response.user.data)
+                userListStore.setTotalPage(response.user.total, response.user.current_page)
             }
         } catch (error: unknown) {    
             this.errorHandle(error ,  $toast)
@@ -111,21 +112,15 @@ class UserService implements UserServiceInterface{
         }
     }
 
-    async delete(url: string, $toast: any) :Promise<void>{
+    async delete(url: string, $fetch: any, $toast: any) :Promise<void>{
         try {
-            const res:Response = await fetch(
-              url,
-              { method: "delete" }
-            );
-            if(res.ok){
-                let response:GeneralResponse = await res.json()
-                if (response.success) {
-                    $toast.success(response.message);
-                } else {
-                    $toast.error(response.message);
-                }
+            const response = await $fetch(url, {
+                method: "delete" ,
+                server: false
+            })
+            if(response?.success){
+                $toast.success(response?.message);
             }
-            
           } catch (error) {
             this.errorHandle(error, $toast)
           }

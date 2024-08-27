@@ -3,46 +3,59 @@ export default defineNuxtConfig({
   compatibilityDate: '2024-04-03',
   devtools: { enabled: true },
 
+  // eslint: {
+  //   config: {
+  //     stylistic: {
+  //       commaDangle: 'never',
+  //       braceStyle: '1tbs'
+  //     }
+  //   }
+  // },
+
   typescript: {
-    typeCheck: true
+    typeCheck: false
   },
 
-  runtimeConfig:{
-    public:{
+  runtimeConfig: {
+    public: {
       base_url: process.env.NUXT_PUBLIC_API_BASE
     }
   },
-  
 
+  modules: [
+    '@pinia/nuxt',
+    '@nuxt/eslint',
+    'nuxt-auth-sanctum',
+    '@nuxtjs/i18n',
+    '@nuxtjs/tailwindcss'
+  ],
   postcss: {
     plugins: {
       'tailwindcss': {},
       'autoprefixer': {},
-    },
+    }
   },
 
-  css: ['~/assets/css/main.css'],
-
-  modules: ["@pinia/nuxt", "@nuxt/eslint", "nuxt-auth-sanctum"],
-  
+  css: ['~/assets/css/tailwind.css'],
   alias: {
-    pinia: "/node_modules/@pinia/nuxt/node_modules/pinia/dist/pinia.mjs"
+    'pinia': '/node_modules/@pinia/nuxt/node_modules/pinia/dist/pinia.mjs',
+    '@': '/stores'
   },
 
   pinia: {
-    storesDirs: ['./stores/**','./modules/**/stores/**'],
+    storesDirs: ['./stores/**', './modules/**/stores/**']
   },
   sanctum: {
-    baseUrl: 'http://localhost:8080',
+    baseUrl: 'http://user_crud.test',
     mode: 'token',
-    endpoints:{
+    endpoints: {
       login: 'api/v1/login',
-      user: 'api/v1/me',
+      user: 'api/v1/profile'
     },
-    redirect:{
+    redirect: {
       onLogin: '/user',
       onAuthOnly: '/login',
       onGuestOnly: '/user'
     }
-},
+  }
 })

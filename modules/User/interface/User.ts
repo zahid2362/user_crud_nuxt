@@ -28,6 +28,10 @@ export interface TableProps {
     users: User[];
 }
 
+
+export interface TableEmit {
+  (event: "toggleDeleteModal", id: number): void;
+}
 export interface UserList {
     message: string;
     success: boolean;
@@ -91,7 +95,7 @@ export interface PaginationProps {
     create(url: string, $fetch: any, $toast: any, userStore: any, router: Router): Promise<void>;
     show(url: string, $toast: any, userStore: any, router: Router): Promise<void>;
     update(url: string, $toast: any, userStore: any, router: Router): Promise<void>;
-    delete(url: string, $toast: any): Promise<void>;
+    delete(url: string, $fetch: any, $toast: any): Promise<void>;
     handleImageUpload(event: Event,  $toast: any, is_update: boolean): void;
     getErrorInputClass(errors: ValidationErrors, field: keyof ValidationErrors): Array<string>;
     errorHandle(error: unknown, $toast: any): void;
